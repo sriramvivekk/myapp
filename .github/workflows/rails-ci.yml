@@ -2,14 +2,16 @@ name: Rails CI
 
 on:
   push:
+    branches: [ "main" ]
   pull_request:
-        branches: ["main"]
+    branches: [ "main" ]
 
 jobs:
   build:
+
     runs-on: ubuntu-latest
 
-    services: 
+    services:
       postgres:
         image: postgres:13
         ports: ['5432:5432']
@@ -23,22 +25,28 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: '2.7.6'
-      
-      - name: install dependencies
+
+      - name: Update RubyGems
+        run: |
+          gem update --system 3.3.26
+
+      - name: Install dependencies
         run: |
           gem install bundler -v 2.2.33
           bundle install
-      
+
       - name: Set up database
         run: |
           cp config/database.yml.github config/database.yml
-          bundle exec rake db:create db:migrate
-      
-      - name: Run test
+          bundle exec rake db:create db:schema:load
+
+      - name: Run RSpec tests
         run: |
-          bundle exec rails rspec
+          bundle exec rspec
