@@ -8,3 +8,7 @@ default: &default
 test:
   <<: *default
   database: myapp_test
+
+development:
+  <<: *default
+  database: myapp_development
